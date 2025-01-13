@@ -57,16 +57,11 @@ def signup():
     if not username or not email or not password:
         return jsonify({'error': 'All fields are required!'}), 400
 
-    if role not in ['creator', 'consumer']:
-        return jsonify({'error': 'Invalid role specified!'}), 400
-
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
     try:
         conn = pyodbc.connect(SQL_CONNECTION_STRING)
         cursor = conn.cursor()
         cursor.execute("INSERT INTO Users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
-                       (username, email, hashed_password, role))
+                       (username, email, bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()), role))
         conn.commit()
         conn.close()
         return jsonify({'message': 'User registered successfully!'}), 201
